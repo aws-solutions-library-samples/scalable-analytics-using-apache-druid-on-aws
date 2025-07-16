@@ -15,7 +15,6 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 import { Construct, IConstruct } from 'constructs';
 
-import { AppRegistry } from '../constructs/appRegistryAspect';
 import { BaseInfrastructure } from '../constructs/baseInfrastructure';
 import { DruidRolePermissionCreator } from '../constructs/druidRolePermissionCreator';
 import { DruidStackProps } from '../utils/types';
@@ -103,17 +102,6 @@ export abstract class DruidStack extends cdk.Stack {
                 removalPolicy: props.removalPolicy,
             });
         }
-
-        cdk.Aspects.of(this).add(
-            new AppRegistry(this, 'app-registry-aspect', {
-                vpc: this.baseInfra.vpc,
-                solutionId: props.solutionId,
-                solutionVersion: props.solutionVersion,
-                solutionName: props.solutionName,
-                applicationName: `Apache-Druid-on-AWS-${props.clusterParams.druidClusterName}`,
-                applicationType: 'AWS-Solutions',
-            })
-        );
     }
 
     protected createDefaultRoles(

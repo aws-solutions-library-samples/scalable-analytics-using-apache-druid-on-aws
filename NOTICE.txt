@@ -17,7 +17,6 @@ This software includes third party software subject to the following copyrights:
 @aws-cdk/asset-awscli-v1 under the Apache-2.0 license
 @aws-cdk/asset-kubectl-v20 under the Apache-2.0 license
 @aws-cdk/asset-node-proxy-agent-v6 under the Apache-2.0 license
-@aws-cdk/aws-servicecatalogappregistry-alpha under the Apache-2.0 license
 @aws-cdk/lambda-layer-kubectl-v29 under the Apache-2.0 license
 @aws-crypto/crc32 under the Apache-2.0 license
 @aws-crypto/ie11-detection under the Apache-2.0 license
@@ -28,7 +27,6 @@ This software includes third party software subject to the following copyrights:
 @aws-sdk/client-elastic-load-balancing-v2 under the Apache-2.0 license
 @aws-sdk/client-route-53 under the Apache-2.0 license
 @aws-sdk/client-secrets-manager under the Apache-2.0 license
-@aws-sdk/client-service-catalog-appregistry under the Apache-2.0 license
 @aws-sdk/client-sso under the Apache-2.0 license
 @aws-sdk/client-sts under the Apache-2.0 license
 @aws-sdk/core under the Apache-2.0 license

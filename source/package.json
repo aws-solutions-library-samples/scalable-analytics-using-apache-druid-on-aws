@@ -46,12 +46,10 @@
         "typescript": "^5.1.6"
     },
     "dependencies": {
-        "@aws-cdk/aws-servicecatalogappregistry-alpha": "^2.183.0-alpha.0",
         "@aws-cdk/lambda-layer-kubectl-v29": "^2.1.1",
         "@aws-sdk/client-elastic-load-balancing-v2": "^3.477.0",
         "@aws-sdk/client-route-53": "^3.477.0",
         "@aws-sdk/client-secrets-manager": "^3.477.0",
-        "@aws-sdk/client-service-catalog-appregistry": "^3.477.0",
         "@types/mustache": "^4.2.2",
         "ajv": "^8.12.0",
         "aws-cdk-lib": "^2.183.0",
