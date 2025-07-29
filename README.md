@@ -1,45 +1,42 @@
 ### Table of contents
 
 -   [Scalable Analytics using Apache Druid on AWS](#scalable-analytics-using-apache-druid-on-aws)
--   [Licence](#licence)
--   [About this solution](#about-this-solution)
-    -   [Solution overview](#solution-overview)
+-   [About this Guidance](#about-this-guidance)
+    -   [Guidance overview](#guidance-overview)
     -   [Benefits](#benefits)
+    -   [Use cases](#use-cases)
 -   [Architecture overview](#architecture-overview)
     -   [Architecture reference diagram](#architecture-reference-diagram)
-    -   [Solution components](#solution-components)
+    -   [Guidance components](#guidance-components)
+    -   [Cost](#cost)
 -   [Prerequisites](#prerequisites)
     -   [Build environment specifications](#build-environment-specifications)
     -   [AWS account](#aws-account)
     -   [Tools](#tools)
--   [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
+-   [How to build and deploy the Guidance](#how-to-build-and-deploy-the-guidance)
     -   [Configuration](#configuration)
     -   [Build and deploy](#build-and-deploy)
 -   [Access the druid web console](#access-the-druid-web-console)
--   [Uninstall the solution](#uninstall-the-solution)
+-   [Uninstall the Guidance](#uninstall-the-guidance)
 -   [Collection of operational metrics](#collection-of-operational-metrics)
+-   [Notices](#notices)
+    -   [Licence](#licence)
+    -   [Disclaimer](#disclaimer)
+-   [Authors](#authors)
 
 ---
 
 ## Scalable Analytics using Apache Druid on AWS
 
-Scalable analytics using Apache Druid on AWS is a solution offered by AWS that enables customers to quickly and efficiently deploy, operate and manage a cost-effective, highly available, resilient, and fault tolerant hosting environment for Apache Druid analytics databases on AWS. 
+Guidance for Scalable analytics using Apache Druid on AWS is a solution offered by AWS that enables customers to quickly and efficiently deploy, operate and manage a cost-effective, highly available, resilient, and fault tolerant hosting environment for Apache Druid analytics databases on AWS. 
 
-## Licence
-
-Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-
-    http://www.apache.org/licenses/
-
-or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
-
-## About this solution
+## About this Guidance
 
 The solution incorporates an [AWS CDK](https://aws.amazon.com/cdk/) construct that encapsulates Apache Druid and is purposefully architected to be easy to operate, secure by design, and well-architected. With this solution, you can establish an Apache Druid cluster for data ingestion and analysis within a matter of minutes. It also provides deployment flexibility by supporting Amazon EC2, Amazon Elastic Kubernetes Service (EKS), and EKS Fargate options, enabling you to run Apache Druid on EC2, EKS, or EKS Fargate as per your preference.
 
 You can use this README file to find out how to build, deploy, use and test the code. You can also contribute to this project in various ways such as reporting bugs, submitting feature requests or additional documentation. For more information, refer to the [Contributing](CONTRIBUTING.md) topic.
 
-## Solution overview
+## Guidance overview
 
 Scalable analytics using Apache Druid on AWS helps organizations utilize the full suite of features and capabilities of this powerful open source analytics engine, while leveraging the flexibility, elasticity, scalability and price performance options of AWS’s compute and storage offerings, for their real-time, low-latency analytics processing use cases.
 
@@ -81,33 +78,99 @@ The following diagram represents the solution's architecture design for EC2 stac
 
 For the architecture of EKS stack, please refer to the diagram located at `source/images/solution_architecture_diagram-eks.png`.
 
-### Solution components
+### Guidance components
 
-The solution deploys the following components that work together to provide a production-ready Druid cluster:
+The Guidance deploys the following components that work together to provide a production-ready Druid cluster:
 
 -   **Web application firewall**: AWS WAF is utilized to safeguard Druid web console and Druid API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources. It is automatically activated when the `internetFacing` parameter is set to true.
 
--   **Application load balancer**: A load balancer serves as the single point of contact for clients. The load balancer distributes incoming application traffic across multiple query servers in multiple Availability Zones.
+-   **Bastion Host**: A security hardened Linux server (Bastion host) manages access to the Druid servers running in a private network separate from an external network. It can also be used to access the Druid web console through SSH tunneling, where a private Application Load Balancer (ALB) is deployed.
 
--   **Druid master auto scaling group**: An Auto Scaling group contains a collection of Druid master servers. A Master server manages data ingestion and availability: it is responsible for starting new ingestion jobs and coordinating availability of data on the "Data servers". Within a Master server, functionality is split between two processes, the Coordinator and Overlord.
+-   **Application load balancer**: ALB serves as the single point of contact for clients. The load balancer distributes incoming application traffic from identity providers—such as object identifiers (OIDS) and lightweight directory access protocol (LDAP)—across multiple query servers in multiple Availability Zones.
 
--   **Druid query auto scaling group**: An Auto Scaling group contains a collection of Druid query servers. A Query server provides the endpoints that users and client applications interact with, routing queries to Data servers or other Query servers. Within a Query server, functionality is split between two processes, the Broker and Router.
+-   **Private Subnet**: The private subnet consists of the following:
+    -   **Druid master auto scaling group**: An Auto Scaling group contains a collection of Druid master servers. A Master server manages data ingestion and availability: it is responsible for starting new ingestion jobs and coordinating availability of data on the "Data servers". Within a Master server, functionality is split between two processes, the Coordinator and Overlord.
 
--   **Druid data auto scaling group**: An Auto Scaling group contains a collection of Druid data servers. A Data server executes ingestion jobs and stores queryable data. Within a Data server, functionality is split between two processes, the Historical and MiddleManager.
+    -   **Druid data auto scaling group**: An Auto Scaling group contains a collection of Druid data servers. A Data server executes ingestion jobs and stores queryable data. Within a Data server, functionality is split between two processes, the Historical and MiddleManager.
 
--   **ZooKeeper auto scaling group**: An Auto Scaling group contains a collection of ZooKeeper servers. Apache Druid uses Apache ZooKeeper (ZK) for management of current cluster state.
+    -   **Druid query auto scaling group**: An Auto Scaling group contains a collection of Druid query servers. A Query server provides the endpoints that users and client applications interact with, routing queries to Data servers or other Query servers. Within a Query server, functionality is split between two processes, the Broker and Router.
 
--   **Aurora based metadata storage**: An Aurora PostgreSQL database cluster provides the metadata storage to Apache Druid cluster. Druid uses the metadata storage to house various metadata about the system, but not to store the actual data.
+    -   **ZooKeeper auto scaling group**: An Auto Scaling group contains a collection of ZooKeeper servers. Apache Druid uses Apache ZooKeeper (ZK) for management of current cluster state.
 
 -   **S3 based deep storage**: An Amazon S3 bucket that provides deep storage to Apache Druid cluster. Deep storage is where segments are stored.
 
--   **Application secrets**: Secrets manager stores the secrets used by Apache Druid including RDS secret, admin user secret etc.
+-   **Application secrets**: AWS Secrets Manager stores the secrets used by Apache Druid, including the Amazon Relational Database Service (Amazon RDS) secret and the administrator user secret. 
 
 -   **Logs, metrics, and dashboards**: Logs, metrics, and dashboards are supported in CloudWatch.
 
+-   **Aurora based metadata storage**: An Aurora PostgreSQL database cluster provides the metadata storage to Apache Druid cluster. Druid uses the metadata storage to house various metadata about the system, but not to store the actual data.
+
 -   **Notifications**: The notification system, powered by Amazon Simple Notification Service (Amazon SNS), delivers alerts or alarms promptly when system events occur. This ensures immediate awareness and action when needed.
 
--   **Bastion host**: A security hardened Linux server used to manage access to the Druid servers running in private network from an external network. It can also be used to access Druid web console through SSH tunneling in the case where private ALB is deployed.
+### Cost
+
+You are responsible for the cost of the AWS services used while running this guidance. As of the latest revision, the costs for running this guidance with the default settings (small usage profile) in the US East (N. Virginia) Region is approximately **$714.46 per month**, for a medium usage profile in the US East (N. Virginia) Region is approximately **$2,202.47 per month**, and for a large usage profile in the US East (N. Virginia) Region is approximately **$13,645.27 per month**.
+
+These costs are for the resources shown in the [Cost table](#cost-table) section. See the pricing webpage for each AWS service used in this guidance.
+
+We recommend creating a [budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-create.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, see the pricing webpage for each AWS service used in this guidance.
+
+#### Cost table
+
+The following tables provide a sample cost breakdown for deploying this guidance with the default parameters in the US East (N. Virginia) Region for one month, encompassing the small, medium, and large usage profiles.
+
+#### 1. Small usage profile
+
+Profile assumptions: ingestion throughput at 30,000 records per second, query throughput at 25 queries per second.
+
+| AWS service  | Dimensions | Cost [USD] |
+| ----------- | ------------ | ------------ |
+| Amazon EC2 | * Druid master: 3 x t4g.medium | $287.53 |
+|            | * Druid query: 3 x t4g.medium |
+|            | * Druid data: 3 x (t4g.medium + 100GB EBS GP2 volume) |
+|            | * ZooKeeper: 3 x t4g.small |
+| Amazon ELB | 1 x ALB, 5 GB/h processed bytes (EC2 Instances and IP addresses as targets) | $45.63 |
+| Amazon Aurora | 3 x db.t4g.medium | $247.81 |
+| Amazon S3 | 1 TB standard storage + 1,000,000 requests per month | $29.67 |
+| AWS Key Management Service | 7 x customer managed keys | $7 |
+| AWS Secrets Manager | 4 x secrets | $1.6 |
+| Amazon CloudWatch | 50 GB standard logs ingested per month, 200 custom metrics + 1,000,000 metric requests per month | $95.22 |
+|  | **Total:** | **$714.46 [USD] / month** |
+
+#### 2. Medium usage profile
+
+Profile assumptions: ingestion throughput at 120,000 records per second, query throughput at 100 queries per second.
+
+| AWS service  | Dimensions | Cost [USD] |
+| ----------- | ------------ | ------------ |
+| Amazon EC2 | * Druid master: 3 x m6g.xlarge | $1,572.62 |
+|            | * Druid query: 3 x m6g.xlarge | |
+|            | * Druid data: 3 x (m6g.2xlarge + 500GB EBS GP2 volume) | |
+|            | * ZooKeeper: 3 x t4g.medium | |
+| Amazon ELB | 1 x ALB, 20 GB/h processed bytes (EC2 Instances and IP addresses as targets) | $133.23 |
+| Amazon Aurora | 3 x db.t4g.medium | $247.81 |
+| Amazon S3 | 5 TB standard storage + 5,000,000 requests per month | $119.76 |
+| AWS Key Management Service | 7 x customer managed keys | $7 |
+| AWS Secrets Manager | 4 x secrets | $1.6 |
+| Amazon CloudWatch | 100 GB standard logs ingested per month, 200 custom metrics + 1,000,000 metric requests per month | $120.45 |
+|  | **Total:** | **$2,202.47 [USD] / month** |
+
+
+#### 3. Large usage profile
+
+| AWS service  | Dimensions | Cost [USD] |
+| ----------- | ------------ | ------------ |
+| Amazon EC2 | * Druid master: 3 x m6g.4xlarge | $10,268.76 |
+|            | * Druid query: 3 x m6g.4xlarge | |
+|            | * Druid data: 3 x (m6g.16xlarge + 5 TB EBS GP2 volume) | |
+|            | * ZooKeeper: 3 x m6g.2xlarge | |
+| Amazon ELB | 1 x ALB, 200 GB/h processed bytes (EC2 Instances and IP addresses as targets) | $1,184.43 |
+| Amazon Aurora | 3 x db.t3.large | $427.39 |
+| Amazon S3 | 50 TB standard storage + 10,000,000 requests per month | $1,181.60 |
+| AWS Key Management Service | 7 x customer managed keys | $7 |
+| AWS Secrets Manager | 4 x secrets | $1.6 |
+| Amazon CloudWatch | 1,000 GB standard logs ingested per month, 200 custom metrics + 1,000,000 metric requests per month | $574.50 |
+|  | **Total:** | **$13,645.27 [USD] / month** |
 
 ---
 
@@ -138,7 +201,7 @@ The solution deploys the following components that work together to provide a pr
 
 ---
 
-## How to build and deploy the solution
+## How to build and deploy the Guidance
 
 Before you deploy the solution, review the architecture and prerequisites sections in this guide. Follow the step-by-step instructions in this section to configure and deploy the solution into your account.
 
@@ -821,7 +884,7 @@ Upon successfully cloning the repository into your local development environment
 
 ---
 
-## Uninstall the solution
+## Uninstall the Guidance
 
 You can uninstall the solution by directly deleting the stacks from the AWS CloudFormation console.
 
@@ -834,14 +897,30 @@ Alternatively, you could also uninstall the solution by running `npm run cdk des
 
 ## Collection of operational metrics
 
-This solution collects anonymous operational metrics to help AWS improve the quality and features of the solution. For more information, including how to disable this capability, refer to the [implementation guide](#https://docs.aws.amazon.com/solutions/latest/scalable-analytics-using-apache-druid-on-aws/welcome.html).
+This solution collects anonymous operational metrics to help AWS improve the quality and features of the solution. For more information, including how to disable this capability, refer to the [implementation guide](https://docs.aws.amazon.com/solutions/latest/scalable-analytics-using-apache-druid-on-aws/solution-overview.html).
 
 ---
 
-Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Notices
+
+### Licence
+
+Copyright 2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
 
     http://www.apache.org/licenses/
 
 or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+### Disclaimer
+
+Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided “as is” without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.
+
+## Authors
+
+Priyank Devenraj<br>
+Abhay Joshi<br>
+Morris Estepa<br>
+Aijun Peng<br>
+
